@@ -21,29 +21,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Изтегляме кода от GitHub
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 2. Проверяваме какъв event е стартирал workflow-а
       - name: Debug GitHub event
         run: |
           echo "EVENT=${{ github.event_name }}"
           echo "REF=${{ github.ref }}"
           echo "SHA=${{ github.sha }}"
 
-      # 3. AWS credentials чрез GitHub OIDC
       - name: Configure AWS Credentials
+        if: github.event_name == 'push'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::980819806634:role/devops-mini-github-actions-role
           aws-region: eu-north-1
 
-      # 4. Проверяваме кой AWS identity използва GitHub Actions
       - name: Check AWS Identity
+        if: github.event_name == 'push'
         run: aws sts get-caller-identity
 
-      # 5. Login в GitHub Container Registry
       - name: Login to GHCR
         if: github.event_name == 'push'
         uses: docker/login-action@v3
@@ -52,17 +49,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # 6. Създаваме пълното име на Docker image-а
       - name: Set image name
         run: |
           echo "IMAGE=${REGISTRY}/${IMAGE_NAME,,}" >> "$GITHUB_ENV"
 
-      # 7. Проверяваме image name
       - name: Show image name
         run: |
           echo "IMAGE=$IMAGE"
 
-      # 8. Build на Docker image
       - name: Build image
         run: |
           docker build \
@@ -70,14 +64,12 @@ jobs:
             -t "$IMAGE:latest" \
             ./app
 
-      # 9. Push към GitHub Container Registry
       - name: Push image
         if: github.event_name == 'push'
         run: |
           docker push "$IMAGE:${GITHUB_SHA}"
           docker push "$IMAGE:latest"
 
-      # 10. Стартираме контейнера
       - name: Run container
         run: |
           docker run -d \
@@ -85,13 +77,11 @@ jobs:
             -p 3000:3000 \
             "$IMAGE:${GITHUB_SHA}"
 
-      # 11. Проверяваме health endpoint-а
       - name: Health check
         run: |
           sleep 2
           curl --fail http://localhost:3000/health
 
-      # 12. При грешка показваме логовете
       - name: Show logs
         if: failure()
         run: docker logs devops-mini-api
