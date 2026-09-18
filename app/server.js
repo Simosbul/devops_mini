@@ -6,7 +6,7 @@ const port = process.env.PORT || 3000;
 app.get("/", (req, res) => {
   res.json({
     message: "Hello from DevOps mini project!",
-    version: "1.0.0"
+    version: "1.1.0"
   });
 });
 
