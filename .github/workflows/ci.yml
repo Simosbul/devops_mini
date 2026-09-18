@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Login to GHCR
+        if: github.event_name == 'push'
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set image name
+        run: |
+          echo "IMAGE=ghcr.io/${simosbul/devops-mini,,}" >> "$GITHUB_ENV"
+
+      - name: Build image
+        run: |
+          docker build \
+            -t $IMAGE:${GITHUB_SHA} \
+            -t $IMAGE:latest \
+            ./app
+
+      - name: Push image
+        if: github.event_name == 'push'
+        run: |
+          docker push $IMAGE:${GITHUB_SHA}
+          docker push $IMAGE:latest
+
+      - name: Run container
+        run: |
+          docker run -d \
+            --name devops-mini-api \
+            -p 3000:3000 \
+            $IMAGE:${GITHUB_SHA}
+
+      - name: Health check
+        run: |
+          sleep 2
+          curl --fail http://localhost:3000/health
+
+      - name: Show logs
+        if: failure()
+        run: docker logs devops-mini-api
