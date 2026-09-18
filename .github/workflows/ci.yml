@@ -1,3 +1,4 @@
+
 name: CI/CD
 
 on:
@@ -28,27 +29,6 @@ jobs:
           echo "EVENT=${{ github.event_name }}"
           echo "REF=${{ github.ref }}"
           echo "SHA=${{ github.sha }}"
-          echo "REPOSITORY=${{ github.repository }}"
-
-      - name: Get GitHub OIDC token
-        if: github.event_name == 'push'
-        uses: actions/github-script@v8
-        id: oidc
-        with:
-          script: |
-            const token = await core.getIDToken('sts.amazonaws.com');
-
-            const payload = JSON.parse(
-              Buffer.from(token.split('.')[1], 'base64url').toString()
-            );
-
-            console.log(JSON.stringify({
-              iss: payload.iss,
-              aud: payload.aud,
-              sub: payload.sub,
-              repository: payload.repository,
-              ref: payload.ref
-            }, null, 2));
 
       - name: Configure AWS Credentials
         if: github.event_name == 'push'
@@ -59,8 +39,7 @@ jobs:
 
       - name: Check AWS Identity
         if: github.event_name == 'push'
-        run: |
-          aws sts get-caller-identity
+        run: aws sts get-caller-identity
 
       - name: Login to GHCR
         if: github.event_name == 'push'
@@ -107,3 +86,4 @@ jobs:
         if: failure()
         run: |
           docker logs devops-mini-api
+
