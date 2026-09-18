@@ -28,26 +28,27 @@ jobs:
           echo "EVENT=${{ github.event_name }}"
           echo "REF=${{ github.ref }}"
           echo "SHA=${{ github.sha }}"
+          echo "REPOSITORY=${{ github.repository }}"
 
-      - name: Debug GitHub OIDC claims
+      - name: Get GitHub OIDC token
         if: github.event_name == 'push'
-        shell: bash
-        run: |
-          TOKEN=$(curl -sSf \
-            -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
-            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" \
-            | jq -r '.value')
+        uses: actions/github-script@v8
+        id: oidc
+        with:
+          script: |
+            const token = await core.getIDToken('sts.amazonaws.com');
 
-          PAYLOAD=$(echo "$TOKEN" | cut -d '.' -f2 | base64 -d 2>/dev/null)
+            const payload = JSON.parse(
+              Buffer.from(token.split('.')[1], 'base64url').toString()
+            );
 
-          echo "$PAYLOAD" | jq '{
-            iss,
-            aud,
-            sub,
-            repository,
-            ref,
-            event_name
-          }'
+            console.log(JSON.stringify({
+              iss: payload.iss,
+              aud: payload.aud,
+              sub: payload.sub,
+              repository: payload.repository,
+              ref: payload.ref
+            }, null, 2));
 
       - name: Configure AWS Credentials
         if: github.event_name == 'push'
@@ -58,7 +59,8 @@ jobs:
 
       - name: Check AWS Identity
         if: github.event_name == 'push'
-        run: aws sts get-caller-identity
+        run: |
+          aws sts get-caller-identity
 
       - name: Login to GHCR
         if: github.event_name == 'push'
@@ -103,4 +105,5 @@ jobs:
 
       - name: Show logs
         if: failure()
-        run: docker logs devops-mini-api
+        run: |
+          docker logs devops-mini-api
