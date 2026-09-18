@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: devops-mini-api
+
+spec:
+  replicas: 1
+
+  selector:
+    matchLabels:
+      app: devops-mini-api
+
+  template:
+    metadata:
+      labels:
+        app: devops-mini-api
+
+    spec:
+      containers:
+        - name: devops-mini-api
+          image: ghcr.io/simosbul/devops_mini:latest
+
+          ports:
+            - containerPort: 3000
