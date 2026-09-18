@@ -15,6 +15,8 @@ permissions:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  AWS_REGION: eu-north-1
+  EKS_CLUSTER: devops-mini
 
 jobs:
   build:
@@ -35,11 +37,12 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::980819806634:role/devops-mini-github-actions-role
-          aws-region: eu-north-1
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Check AWS Identity
         if: github.event_name == 'push'
-        run: aws sts get-caller-identity
+        run: |
+          aws sts get-caller-identity
 
       - name: Login to GHCR
         if: github.event_name == 'push'
@@ -82,8 +85,27 @@ jobs:
           sleep 2
           curl --fail http://localhost:3000/health
 
-      - name: Show logs
-        if: failure()
+      - name: Configure kubectl
+        if: github.event_name == 'push'
         run: |
-          docker logs devops-mini-api
+          aws eks update-kubeconfig \
+            --region "$AWS_REGION" \
+            --name "$EKS_CLUSTER"
+
+      - name: Deploy to EKS
+        if: github.event_name == 'push'
+        run: |
+          kubectl set image deployment/devops-mini-api \
+            devops-mini-api="$IMAGE:${GITHUB_SHA}"
+
+      - name: Wait for rollout
+        if: github.event_name == 'push'
+        run: |
+          kubectl rollout status deployment/devops-mini-api --timeout=180s
+
+      - name: Show deployment
+        if: github.event_name == 'push'
+        run: |
+          kubectl get deployment devops-mini-api
+          kubectl get pods -l app=devops-mini-api
 
