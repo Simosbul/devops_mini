@@ -10,51 +10,69 @@ permissions:
   contents: read
   packages: write
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
+      # 1. Изтегляме кода от GitHub
       - name: Checkout
         uses: actions/checkout@v4
 
+      # 2. Login в GitHub Container Registry
       - name: Login to GHCR
         if: github.event_name == 'push'
         uses: docker/login-action@v3
         with:
-          registry: ghcr.io
+          registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # 3. Създаваме пълното име на Docker image-а
       - name: Set image name
         run: |
-          echo "IMAGE=ghcr.io/${simosbul/devops-mini,,}" >> "$GITHUB_ENV"
+          echo "IMAGE=${REGISTRY}/${IMAGE_NAME,,}" >> "$GITHUB_ENV"
 
+      # 4. Проверяваме какво сме получили
+      - name: Show image name
+        run: |
+          echo "IMAGE=$IMAGE"
+
+      # 5. Build на Docker image
       - name: Build image
         run: |
           docker build \
-            -t $IMAGE:${GITHUB_SHA} \
-            -t $IMAGE:latest \
+            -t "$IMAGE:${GITHUB_SHA}" \
+            -t "$IMAGE:latest" \
             ./app
 
+      # 6. Push към GitHub Container Registry
       - name: Push image
         if: github.event_name == 'push'
         run: |
-          docker push $IMAGE:${GITHUB_SHA}
-          docker push $IMAGE:latest
+          docker push "$IMAGE:${GITHUB_SHA}"
+          docker push "$IMAGE:latest"
 
+      # 7. Стартираме контейнера
       - name: Run container
         run: |
           docker run -d \
             --name devops-mini-api \
             -p 3000:3000 \
-            $IMAGE:${GITHUB_SHA}
+            "$IMAGE:${GITHUB_SHA}"
 
+      # 8. Проверяваме health endpoint-а
       - name: Health check
         run: |
           sleep 2
           curl --fail http://localhost:3000/health
 
+      # 9. При грешка показваме логовете
       - name: Show logs
         if: failure()
         run: docker logs devops-mini-api
+
