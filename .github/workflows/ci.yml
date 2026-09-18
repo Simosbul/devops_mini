@@ -1,4 +1,4 @@
-name: CI
+name: CI/CD
 
 on:
   push:
@@ -24,13 +24,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 1.5 Configure AWS Credentials
+      # 1.5 AWS credentials чрез OIDC
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
-        with: 
-        role-to-assume: arn:aws:iam::980819806634:role/devops-mini-github-actions-role
-         aws-region: eu-north-1
+        with:
+          role-to-assume: arn:aws:iam::980819806634:role/devops-mini-github-actions-role
+          aws-region: eu-north-1
 
+      # Проверяваме кой AWS identity използва GitHub Actions
       - name: Check AWS Identity
         run: aws sts get-caller-identity
 
