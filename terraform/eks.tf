@@ -13,6 +13,10 @@ resource "aws_eks_cluster" "devops_mini" {
       aws_subnet.devops_mini_private_2.id
     ]
   }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.eks_cluster
+  ]
 }
 
 resource "aws_eks_access_entry" "github_actions" {
@@ -33,5 +37,6 @@ resource "aws_eks_access_policy_association" "github_actions" {
 
   depends_on = [
   aws_eks_access_entry.github_actions]
+
 
 }
