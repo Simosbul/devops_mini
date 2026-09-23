@@ -95,6 +95,7 @@ jobs:
       - name: Deploy to EKS
         if: github.event_name == 'push'
         run: |
+          kubectl apply -f k8s/
           kubectl set image deployment/devops-mini-api \
             devops-mini-api="$IMAGE:${GITHUB_SHA}"
 
