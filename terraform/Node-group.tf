@@ -17,9 +17,10 @@ resource "aws_eks_node_group" "devops_mini" {
   instance_types = ["t3.small"]
 
   depends_on = [
-    aws_eip.devops_mini_nat,
+    aws_iam_role_policy_attachment.eks_node_worker,
+    aws_iam_role_policy_attachment.eks_node_ecr,
+    aws_iam_role_policy_attachment.eks_node_cni,
     aws_nat_gateway.devops_mini,
-    aws_route_table.devops_mini_private,
     aws_route_table_association.devops_mini_private_1,
     aws_route_table_association.devops_mini_private_2
   ]
