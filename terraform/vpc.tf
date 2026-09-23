@@ -98,6 +98,8 @@ resource "aws_nat_gateway" "devops_mini" {
   ]
 }
 
+----------------------------------------------------------
+
 resource "aws_route_table" "devops_mini_private" {
   vpc_id = aws_vpc.devops_mini.id
 

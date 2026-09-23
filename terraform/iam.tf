@@ -108,10 +108,10 @@ resource "aws_iam_role" "github_actions" {
           }
 
           StringLike = {
-            "token.actions.githubusercontent.com:sub" = "repo:Simosbul@280695717/devops_mini@1375654892:ref:refs/heads/main"
+            "token.actions.githubusercontent.com:sub" = "repo:Simosbul/devops_mini:ref:refs/heads/main"
           }
         }
-      }
+      } 
     ]
   })
 
