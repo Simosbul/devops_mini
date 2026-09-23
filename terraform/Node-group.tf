@@ -14,7 +14,7 @@ resource "aws_eks_node_group" "devops_mini" {
     max_size     = 1
   }
 
-  instance_types = ["t3.small"]
+  instance_types = var.instance_types
 
   depends_on = [
     aws_iam_role_policy_attachment.eks_node_worker,
