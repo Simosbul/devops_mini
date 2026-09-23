@@ -7,8 +7,7 @@ services:
     ports:
       - "3000:3000"
     environment:
-      PORT: 3000
-      MONGODB_URI: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/${MONGO_INITDB_DATABASE}?authSource=admin
+      PORT: 3000  
     volumes:
       - devops-mini-volume:/app/data
     depends_on:
@@ -16,6 +15,7 @@ services:
 
   mongo:
     image: mongo:8.0
+    MONGODB_URI: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/${MONGO_INITDB_DATABASE}?authSource=admin
     container_name: devops-mini-mongo
     restart: unless-stopped
     env_file:
