@@ -111,7 +111,7 @@ resource "aws_iam_role" "github_actions" {
             "token.actions.githubusercontent.com:sub" = "repo:Simosbul@280695717/devops_mini@1375654892:ref:refs/heads/main"
           }
         }
-      } 
+      }
     ]
   })
 
