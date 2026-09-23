@@ -3,7 +3,6 @@ services:
     build:
       context: .
     container_name: devops-mini-con
-    restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
@@ -17,7 +16,6 @@ services:
     image: mongo:8.0
     MONGODB_URI: mongodb://${MONGO_INITDB_ROOT_USERNAME}:${MONGO_INITDB_ROOT_PASSWORD}@mongo:27017/${MONGO_INITDB_DATABASE}?authSource=admin
     container_name: devops-mini-mongo
-    restart: unless-stopped
     env_file:
       - mongo.env
     volumes:
