@@ -22,7 +22,11 @@ services:
       - mongo.env
     volumes:
       - mongodb-data:/data/db
+      - mongodb-config:/data/configdb
+    
 
 volumes:
   devops-mini-volume:
   mongodb-data:
+  mongodb-config:
+  
